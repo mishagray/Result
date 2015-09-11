@@ -3,18 +3,18 @@
 /// A type that can represent either failure with an error or success with a result value.
 public protocol ResultType {
 	typealias Value
-	typealias Error: ErrorType
+//	typealias Error: ErrorType
 	
 	/// Constructs a successful result wrapping a `value`.
 	init(value: Value)
 
 	/// Constructs a failed result wrapping an `error`.
-	init(error: Error)
+	init(error: ErrorType)
 	
 	/// Case analysis for ResultType.
 	///
 	/// Returns the value produced by appliying `ifFailure` to the error if self represents a failure, or `ifSuccess` to the result value if self represents a success.
-	func analysis<U>(@noescape ifSuccess ifSuccess: Value -> U, @noescape ifFailure: Error -> U) -> U
+	func analysis<U>(@noescape ifSuccess ifSuccess: Value -> U, @noescape ifFailure: ErrorType -> U) -> U
 }
 
 public extension ResultType {
@@ -25,7 +25,7 @@ public extension ResultType {
 	}
 	
 	/// Returns the error if self represents a failure, `nil` otherwise.
-	var error: Error? {
+	var error: ErrorType? {
 		return analysis(ifSuccess: { _ in nil }, ifFailure: { $0 })
 	}
 }

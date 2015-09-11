@@ -22,29 +22,31 @@ final class ResultTests: XCTestCase {
 
 	func testErrorsIncludeTheSourceFile() {
 		let file = __FILE__
-		XCTAssert(Result<(), NSError>.error().file == file)
+		XCTAssert(Result<()>.error().file == file)
 	}
 
 	func testErrorsIncludeTheSourceLine() {
-		let (line, error) = (__LINE__, Result<(), NSError>.error())
+		let (line, error) = (__LINE__, Result<()>.error())
 		XCTAssertEqual(error.line ?? -1, line)
 	}
 
 	func testErrorsIncludeTheCallingFunction() {
 		let function = __FUNCTION__
-		XCTAssert(Result<(), NSError>.error().function == function)
+		XCTAssert(Result<()>.error().function == function)
 	}
 
 	// MARK: Try - Catch
 	
 	func testTryCatchProducesSuccesses() {
-		let result: Result<String, NSError> = Result(try tryIsSuccess("success"))
+		let result: Result<String> = Result(try tryIsSuccess("success"))
 		XCTAssert(result == success)
 	}
 	
 	func testTryCatchProducesFailures() {
-		let result: Result<String, NSError> = Result(try tryIsSuccess(nil))
-		XCTAssert(result.error == error)
+		let result: Result<String> = Result(try tryIsSuccess(nil))
+		if let e = result.error as? NSError {
+			XCTAssert(e == error)
+		}
 	}
 
 	// MARK: Cocoa API idioms
@@ -84,24 +86,24 @@ final class ResultTests: XCTestCase {
 		}
 
 		let resultFailureBoth = failure &&& failure2
-		XCTAssert(resultFailureBoth.error == error)
+		XCTAssert(resultFailureBoth.error as! NSError ~= error)
 
 		let resultFailureLeft = failure &&& success
-		XCTAssert(resultFailureLeft.error == error)
+		XCTAssert(resultFailureLeft.error as! NSError ~= error)
 
 		let resultFailureRight = success &&& failure2
-		XCTAssert(resultFailureRight.error == error2)
+		XCTAssert(resultFailureRight.error as! NSError ~= error2)
 	}
 }
 
 
 // MARK: - Fixtures
 
-let success = Result<String, NSError>.Success("success")
+let success = Result<String>.Success("success")
 let error = NSError(domain: "com.antitypical.Result", code: 0xdeadbeef, userInfo: nil)
 let error2 = NSError(domain: "com.antitypical.Result", code: 0x12345678, userInfo: nil)
-let failure = Result<String, NSError>.Failure(error)
-let failure2 = Result<String, NSError>.Failure(error2)
+let failure = Result<String>.Failure(error)
+let failure2 = Result<String>.Failure(error2)
 
 
 // MARK: - Helpers
@@ -110,7 +112,7 @@ func attempt<T>(value: T, succeed: Bool, error: NSErrorPointer) -> T? {
 	if succeed {
 		return value
 	} else {
-		error.memory = Result<(), NSError>.error()
+		error.memory = Result<()>.error()
 		return nil
 	}
 }
@@ -125,15 +127,15 @@ func tryIsSuccess(text: String?) throws -> String {
 
 extension NSError {
 	var function: String? {
-		return userInfo[Result<(), NSError>.functionKey as NSString] as? String
+		return userInfo[Result<()>.functionKey as NSString] as? String
 	}
 	
 	var file: String? {
-		return userInfo[Result<(), NSError>.fileKey as NSString] as? String
+		return userInfo[Result<()>.fileKey as NSString] as? String
 	}
 
 	var line: Int? {
-		return userInfo[Result<(), NSError>.lineKey as NSString] as? Int
+		return userInfo[Result<()>.lineKey as NSString] as? Int
 	}
 }
 
